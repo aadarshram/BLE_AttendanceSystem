@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">PrillClient</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="Result">Result</string>
+    <string name="Scan">Scan</string>
+    <string name="Scan_succeeded">Scan succeeded</string>
+    <string name="Scan_failed">Scan failed or timed out</string>
+
+    <string name="Scanning">Scanning</string>
+    <string name="permission_denied">Permission denied. Cannot start scan.</string>"
+    <string name="Unavailable_scanner">BluetoothLeScanner is not available</string>
+    <string name="permission_denied_stop">Permission denied. Cannot stop scan</string>
+</resources>
