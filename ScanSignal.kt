@@ -1,8 +1,4 @@
-// Module for scanning Bluetooth LE broadcast signals
-// Can filter based on Service UUID, Device Name, MAC Address, Service Data, Manufacturer Specific
-// Data, Advertising Data Type, and corresponding Data.
-
-// Import necessary libraries
+// ScanSignal.kt
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
@@ -16,16 +12,13 @@ import android.os.ParcelUuid
 import android.util.Log
 import java.util.UUID
 
-class ScanSignal(private val context: Context) {
+class ScanSignal(private val context: Context, private val resultCallback: (Boolean) -> Unit) {
 
-    // Initialize Bluetooth services
     private val bluetoothManager: BluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter
     private val bluetoothLeScanner: BluetoothLeScanner? = bluetoothAdapter.bluetoothLeScanner
-    // Adapter to handle device list
-    private val leDeviceListAdapter: LeDeviceListAdapter? = LeDeviceListAdapter()
-    // Handle timing
+
     private var scanning = false
     private val handler = Handler()
     private val scanPeriod: Long = 10000 // 10 seconds
@@ -34,42 +27,25 @@ class ScanSignal(private val context: Context) {
             object : ScanCallback() {
                 override fun onScanResult(callbackType: Int, result: ScanResult) {
                     super.onScanResult(callbackType, result)
-                    processScanResult(result)
+                    stopScan()
+                    resultCallback(true) // Successfully received a result
                 }
 
                 override fun onBatchScanResults(results: List<ScanResult>) {
                     super.onBatchScanResults(results)
-                    results.forEach { result -> processScanResult(result) }
+                    if (results.isNotEmpty()) {
+                        stopScan()
+                        resultCallback(true) // Successfully received a result
+                    }
                 }
 
                 override fun onScanFailed(errorCode: Int) {
                     super.onScanFailed(errorCode)
-                    Log.e("ScanFailed", "Error code: $errorCode")
+                    stopScan()
+                    resultCallback(false) // Scan failed
                 }
             }
 
-    // Process scan result
-    private fun processScanResult(result: ScanResult) {
-        val scanRecord = result.scanRecord
-        val serviceUuids = scanRecord?.serviceUuids
-        val device = result.device
-        val rssi = result.rssi
-
-        // Log the data received
-        serviceUuids?.forEach { uuid ->
-            Log.d(
-                    "ScanResult",
-                    "Device name: ${device.name ?: "Unknown Device"}, Address: ${device.address}, RSSI: $rssi, Service UUID: ${uuid.uuid}"
-            )
-        }
-
-        leDeviceListAdapter?.apply {
-            addDevice(device)
-            notifyDataSetChanged()
-        }
-    }
-
-    // Start scan
     fun startScan() {
         if (bluetoothLeScanner != null) {
             val serviceUuid = ParcelUuid(UUID.fromString("<UUID-here>")) // Example UUID
@@ -79,32 +55,27 @@ class ScanSignal(private val context: Context) {
                     ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
 
             bluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback)
-        } else {
-            Log.e("ScanError", "BluetoothLeScanner is not available")
-        }
-    }
+            scanning = true
 
-    // Stop scan
-    fun stopScan() {
-        bluetoothLeScanner?.stopScan(scanCallback)
-    }
-
-    // Scan management
-    private fun scanLeDevice() {
-        if (!scanning) {
             handler.postDelayed(
                     {
-                        scanning = false
-                        stopScan()
+                        if (scanning) {
+                            stopScan()
+                            resultCallback(false) // No result found within the period
+                        }
                     },
                     scanPeriod
             )
-
-            scanning = true
-            startScan()
         } else {
+            Log.e("ScanError", "BluetoothLeScanner is not available")
+            resultCallback(false)
+        }
+    }
+
+    private fun stopScan() {
+        if (scanning) {
+            bluetoothLeScanner?.stopScan(scanCallback)
             scanning = false
-            stopScan()
         }
     }
 }
