@@ -3,13 +3,12 @@ package com.example.prillclient
 // MainActivity.kt
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-
+import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
-
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
@@ -24,13 +23,12 @@ import android.os.ParcelUuid
 import android.os.Looper
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var bluetoothAdapter: BluetoothAdapter
+    private lateinit var bluetoothManager: BluetoothManager
+    private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
 
     private lateinit var resultTextView: TextView
     private var scanning = false
-    // private val handler = Handler()
     private val scanPeriod: Long = 10000 // 10 seconds
 
     private val scanCallback = object : ScanCallback() {
@@ -58,12 +56,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        bluetoothManager = getSystemService(BluetoothManager::class.java)
+        bluetoothAdapter = bluetoothManager.adapter
+        bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
 
         val scanButton: Button = findViewById(R.id.scanButton)
         resultTextView = findViewById(R.id.resultTextView)
 
-        // Initialize Bluetooth
-        bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
 
         scanButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
@@ -77,18 +76,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun startScan() {
         bluetoothLeScanner?.let {
-            val serviceUuid = ParcelUuid(UUID.fromString("your-uuid-here")) // Replace with your UUID
-            val scanFilter = ScanFilter.Builder().setServiceUuid(serviceUuid).build()
-            val scanFilters = listOf(scanFilter)
+            val serviceUuid = ParcelUuid(UUID.fromString("a81bc81b-dead-4e5d-abff-90865d1e13b1")) // Replace with your UUID
+//            val scanFilter = ScanFilter.Builder().setServiceUuid(serviceUuid).build()
+//            val scanFilters = listOf(scanFilter)
             val scanSettings = ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build()
 
             try {
-                it.startScan(scanFilters, scanSettings, scanCallback)
+                it.startScan(scanCallback) // scanFilter, scanSettings
                 scanning = true
 
-                // Stop scan after scanPeriod (10 seconds
+                // Stop scan after scanPeriod (10 seconds)
                 Handler(Looper.getMainLooper()).postDelayed({
                     if (scanning) {
                         stopScan()

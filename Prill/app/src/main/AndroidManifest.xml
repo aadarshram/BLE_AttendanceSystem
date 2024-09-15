@@ -21,6 +21,8 @@
         android:name="android.permission.ACCESS_COARSE_LOCATION"
         android:maxSdkVersion="30" />
 
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+    <uses-feature android:name="android.hardware.location" android:required="true" />
     <!-- Application Declaration -->
     <application
         android:allowBackup="true"
