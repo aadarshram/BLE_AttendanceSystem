@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="resultTextView" type="id">resultTextView</item>
+    <item name="nav_view" type="id">nav_view</item>
+    <item name="submitButton" type="id">submitButton</item>
+    <item name="inputField" type="id">inputField</item>
+</resources>
